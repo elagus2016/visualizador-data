@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> 
+</head>
+<body>
+  <h3 style="text-align: center;">HOTEL</h3>
+  <h4 style="text-align: center;">Visualizador de huespedes alojados </h4>
+  <br><br>
+  <div class="container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Nombre</th>
+          <th scope="col">Apellido</th>
+          <th scope="col">DNI</th>
+          <th scope="col">Fecha de ingreso</th>
+          <th scope="col">Fecha de Egreso</th>
+          <th scope="col">Total Huespedes</th>
+          <th scope="col">Habitación</th>
+          <th scope="col">Telefono</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tabla">
+      
+      </tbody>
+    </table>
+
+    <!-- Button trigger modal -->
+<div style="text-align: center;">
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalLong" onClick="window.location.reload();">
+  Actualizar Pantalla
+</button> 
+</div>  
+
+<!-- Modal -->
+<div class="modal fade" id="mymodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="exampleModalLongTitle">Datos acompañantes</h5>
+      <button type="button"  class="close" data-dismiss="modal" aria-label="Close" onclick="cerrar_modal()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body" id="uno">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Apellido</th>
+            <th scope="col">DNI</th>
+            <th scope="col">Fecha de Nacimento</th>
+            <th scope="col">Edad</th>
+          </tr>
+        </thead>
+        <tbody id="tmodal">
+        <tr id="uno"></tr>
+        
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="cerrar_modal()">Cerrar</button>
+      
+    </div>
+  </div>
+</div>
+</div>
+  </div>
+    
+    
+</body>
+
+<script src="papaparse.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+  function cerrar_modal(){
+    var elem = document.querySelector('#tmodal');
+    elem.innerHTML='';
+  }
+
+  //setInterval(dataset_ya, 1000);
+  dataset_ya();
+
+ 
+  function dataset_ya(){
+    let elem = document.querySelector('#tabla');
+    elem.innerHTML='';
+    // dentro de paparse pasamos la url de csv que queramos parsear, en este caso es un documento google sheet proveniente de un formulario previamente
+    // armado y con campos fijos 
+    Papa.parse("documento de google sheets/export?format=csv",
+     {
+        download: true,
+        complete: function (results) {
+           // document.getElementById("texto").innerHTML=results.data; 
+            console.log(results.data);
+           // pasamos los datos parseados a dataset 
+           let dataset = results.data;
+           // creamos una variable para la fecha de hoy
+           var fecha_hoy = new Date();
+           fecha_hoy.setHours(0,0,0,0);
+           
+ 
+           // recorre todo el dataset y va agregando a la tabla
+           for (let i=1; i < dataset.length ; i++){
+               //revisamos si las filas tienen completas los campos de fechas de ingreso y egreso
+              if (dataset[i][85] != null && dataset[i][85] != ""){
+                let fecha_in = dataset[i][85].split("/");
+                let fecha_out = dataset[i][86].split("/");
+
+              //formateamos interamente las fechas a UTC para trabajar mejor
+
+                var fecha_in_formateada = new Date(+fecha_in[2] , fecha_in[1] -1,  +fecha_in[0]);
+                var fecha_out_formateada = new Date(+fecha_out[2] , fecha_out[1] -1,  +fecha_out[0]);
+                
+                var fecha_ayer =new Date();
+                fecha_ayer.setDate(fecha_out_formateada.getDate() - 1);
+                fecha_ayer.setHours(0,0,0,0);
+                console.log(fecha_ayer);
+                
+                console.log(fecha_hoy.getTime());
+                console.log(fecha_in_formateada.getTime());
+
+              //Corroboramos que la reserva este vigente y preparamos para mostrar
+
+               if (fecha_hoy >= fecha_in_formateada && fecha_hoy <= fecha_out_formateada) {
+                 
+                console.log('La reserva esta vigente');
+                // armamos las filas de la tabla dinamicamente  
+                texto = dataset[i][1];
+                var row_element= document.createElement('td');
+                row_element.appendChild(document.createTextNode(texto));
+                console.log(row_element);
+
+                texto = dataset[i][2];
+                var row_element2= document.createElement('td');
+                row_element2.appendChild(document.createTextNode(texto));
+                var trow = document.createElement('tr');
+
+                texto = dataset[i][5];
+                var row_element3= document.createElement('td');
+                row_element3.appendChild(document.createTextNode(texto));
+                var trow = document.createElement('tr');
+
+                texto = dataset[i][85];
+                var row_element4= document.createElement('td');
+                row_element4.appendChild(document.createTextNode(texto));
+                var trow = document.createElement('tr');
+
+                texto = dataset[i][86];
+                var row_element5= document.createElement('td');
+                row_element5.appendChild(document.createTextNode(texto));
+                var trow = document.createElement('tr');
+                
+                texto = dataset[i][11];
+
+                if (isNaN(texto)){
+                    var row_element6= document.createElement('td');
+                    row_element6.appendChild(document.createTextNode(texto));
+                    var trow = document.createElement('tr');
+                }
+                else{
+                    texto = parseInt(dataset[i][11]);
+                    var row_element6= document.createElement('td');
+                    row_element6.appendChild(document.createTextNode(texto+1));
+                    var trow = document.createElement('tr');
+                }
+              
+
+                texto = dataset[i][87];
+                var row_element7= document.createElement('td');
+                row_element7.appendChild(document.createTextNode(texto));
+                var trow = document.createElement('tr');
+
+                texto = dataset[i][88];
+                var row_element8= document.createElement('td');
+                row_element8.appendChild(document.createTextNode(texto));
+                var trow = document.createElement('tr');
+
+                
+                var row_element9= document.createElement('td');
+
+                
+                function abrir_modal(){
+                  //genera una ventana modal con los atributos de los acompañantes (en caso que existan)
+                
+                  var myModal = new bootstrap.Modal(document.getElementById('mymodal'));
+
+                  if (dataset[i][13] !='' && dataset[i][14] !='' && dataset[i][17] !='' && dataset[i][15] !='' && dataset[i][16] !=''){
+
+                    let texto_modal = dataset[i][13];
+                    let row_element_modal1= document.createElement('td');
+                    row_element_modal1.appendChild(document.createTextNode(texto_modal));
+                    let trow_modal = document.createElement('tr');
+                    trow_modal.appendChild(row_element_modal1);
+  
+                    texto_modal = dataset[i][14];
+                    let row_element_modal2= document.createElement('td');
+                    row_element_modal2.appendChild(document.createTextNode(texto_modal));
+                    trow_modal.appendChild(row_element_modal2);
+  
+                    texto_modal = dataset[i][17];
+                    let row_element_modal3= document.createElement('td');
+                    row_element_modal3.appendChild(document.createTextNode(texto_modal));
+                    trow_modal.appendChild(row_element_modal3);
+  
+                    texto_modal = dataset[i][15];
+                    let row_element_modal4= document.createElement('td');
+                    row_element_modal4.appendChild(document.createTextNode(texto_modal));
+                    trow_modal.appendChild(row_element_modal4);
+  
+                    texto_modal = dataset[i][16];
+                    let row_element_modal5= document.createElement('td');
+                    row_element_modal5.appendChild(document.createTextNode(texto_modal));
+                    trow_modal.appendChild(row_element_modal5);
+  
+                    document.getElementById('tmodal').appendChild(trow_modal);
+
+                  }
+
+                  if (dataset[i][24] !='' && dataset[i][25] !='' && dataset[i][26] !='' && dataset[i][27] !='' && dataset[i][28] !=''&& dataset[i][34] !=''&& dataset[i][35] !=''&& dataset[i][36] !=''&& dataset[i][37] !=''&& dataset[i][38] !=''){
+
+                    let texto_modal = dataset[i][24];
+                    let row_element_modal1= document.createElement('td');
+                    row_element_modal1.appendChild(document.createTextNode(texto_modal));
+                    let trow_modal = document.createElement('tr');
+                    trow_modal.appendChild(row_element_modal1);
+  
+                    texto_modal = dataset[i][25];
+                    let row_element_modal2= document.createElement('td');
+                    row_element_modal2.appendChild(document.createTextNode(texto_modal));
+                    trow_modal.appendChild(row_element_modal2);
+  
+                    texto_modal = dataset[i][28];
+                    let row_element_modal3= document.createElement('td');
+                    row_element_modal3.appendChild(document.createTextNode(texto_modal));
+                    trow_modal.appendChild(row_element_modal3);
+  
+                    texto_modal = dataset[i][26];
+                    let row_element_modal4= document.createElement('td');
+                    row_element_modal4.appendChild(document.createTextNode(texto_modal));
+                    trow_modal.appendChild(row_element_modal4);
+  
+                    texto_modal = dataset[i][27];
+                    let row_element_modal5= document.createElement('td');
+                    row_element_modal5.appendChild(document.createTextNode(texto_modal));
+                    trow_modal.appendChild(row_element_modal5);
+
+                    document.getElementById('tmodal').appendChild(trow_modal);
+
+                    texto_modal = dataset[i][34];
+                    let row_element_modal6= document.createElement('td');
+                    row_element_modal6.appendChild(document.createTextNode(texto_modal));
+                    let trow_modal2 = document.createElement('tr');
+                    trow_modal2.appendChild(row_element_modal6);
+
+                    texto_modal = dataset[i][35];
+                    let row_element_modal7= document.createElement('td');
+                    row_element_modal7.appendChild(document.createTextNode(texto_modal));
+                    trow_modal2.appendChild(row_element_modal7);
+
+                    texto_modal = dataset[i][38];
+                    let row_element_modal8= document.createElement('td');
+                    row_element_modal8.appendChild(document.createTextNode(texto_modal));
+                    trow_modal2.appendChild(row_element_modal8);
+
+                    texto_modal = dataset[i][37];
+                    let row_element_modal9= document.createElement('td');
+                    row_element_modal9.appendChild(document.createTextNode(texto_modal));
+                    trow_modal2.appendChild(row_element_modal9);
+
+                    texto_modal = dataset[i][36];
+                    let row_element_modal10= document.createElement('td');
+                    row_element_modal10.appendChild(document.createTextNode(texto_modal));
+                    trow_modal2.appendChild(row_element_modal10);
+  
+                    document.getElementById('tmodal').appendChild(trow_modal2);
+
+
+                  }
+                  
+                  
+                  myModal.show();
+                }
+
+                var btn = document.createElement('input');
+                btn.type = "button";
+                btn.className = "btn";
+                btn.value = 'mas info...';
+                btn.onclick = function(){abrir_modal()};
+                
+                row_element9.appendChild(btn);
+                var trow = document.createElement('tr');
+              
+                
+                trow.appendChild(row_element);
+                trow.appendChild(row_element2);
+                trow.appendChild(row_element3);
+                trow.appendChild(row_element4);
+                trow.appendChild(row_element5);
+                trow.appendChild(row_element6);
+                trow.appendChild(row_element7);
+                trow.appendChild(row_element8);
+                trow.appendChild(row_element9);
+
+
+                if (fecha_hoy.getTime() == fecha_in_formateada.getTime()){
+                    trow.classList.add('bg-warning');
+                }
+
+                if (fecha_hoy.getTime() == fecha_ayer.getTime()){
+                    trow.classList.add('bg-danger');
+                }
+                
+                document.getElementById('tabla').appendChild(trow);
+                }
+                $('#myModal').modal();
+              } 
+                 
+
+          } 
+        }
+    });   
+
+  }
+
+
+    
+</script>
+
+</html>
